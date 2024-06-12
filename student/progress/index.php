@@ -1,134 +1,148 @@
+<?php
+// Database connection
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "elearning";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Fetch student data (replace with actual student ID fetching logic)
+$student_id = 1; // Example student ID, replace with your actual method to get student ID
+
+// Fetch student grades data
+$sql = "SELECT assignment_score, exam_score FROM student_grades WHERE student_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$student_grades = [];
+while ($row = $result->fetch_assoc()) {
+    $student_grades[] = $row;
+}
+
+$stmt->close();
+$conn->close();
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>Student Progress</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js"></script>
     <style>
         .progress-container {
             display: flex;
-            justify-content: space-around;
-            align-items: center;
             flex-wrap: wrap;
+            gap: 20px;
         }
         .progress-card {
-            width: 45%;
-            margin: 1%;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
             padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
         .progress-circle {
-            width: 100px;
-            height: 100px;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
         }
         .progress-label {
-            text-align: center;
             margin-top: 10px;
+            font-weight: bold;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js"></script>
+    <script>
+        var studentGrades = <?php echo json_encode($student_grades); ?>;
+        document.addEventListener("DOMContentLoaded", function() {
+            studentGrades.forEach(function(grades, i) {
+                var assignmentProgress = new ProgressBar.Circle("#assignmentProgress" + i, {
+                    color: "#3498db",
+                    strokeWidth: 6,
+                    trailWidth: 3,
+                    text: {
+                        value: grades['assignment_score'] + "%",
+                        className: "progressbar-text",
+                        style: {
+                            color: "#333",
+                            position: "absolute",
+                            left: "50%",
+                            top: "50%",
+                            padding: 0,
+                            margin: 0,
+                            transform: {
+                                prefix: true,
+                                value: "translate(-50%, -50%)"
+                            }
+                        }
+                    },
+                    step: function(state, circle) {
+                        circle.setText(Math.round(circle.value() * 100) + "%");
+                    }
+                });
+                assignmentProgress.animate(grades['assignment_score'] / 100);
+
+                var examProgress = new ProgressBar.Circle("#examProgress" + i, {
+                    color: "#e74c3c",
+                    strokeWidth: 6,
+                    trailWidth: 3,
+                    text: {
+                        value: grades['exam_score'] + "%",
+                        className: "progressbar-text",
+                        style: {
+                            color: "#333",
+                            position: "absolute",
+                            left: "50%",
+                            top: "50%",
+                            padding: 0,
+                            margin: 0,
+                            transform: {
+                                prefix: true,
+                                value: "translate(-50%, -50%)"
+                            }
+                        }
+                    },
+                    step: function(state, circle) {
+                        circle.setText(Math.round(circle.value() * 100) + "%");
+                    }
+                });
+                examProgress.animate(grades['exam_score'] / 100);
+            });
+        });
+    </script>
 </head>
 <body>
-<?php if($_settings->chk_flashdata('success')): ?>
-<script>
-	alert_toast("<?php echo $_settings->flashdata('success') ?>", 'success')
-</script>
-<?php endif; ?>
 
 <div class="card card-outline card-primary w-fluid">
     <div class="card-header">
         <h3 class="card-title">Student Progress</h3>
     </div>
     <div class="card-body progress-container">
-        <?php 
-        $i = 1;
-        $academic_year_id = $_settings->userdata('academic_id');
-        $student_id = $_settings->userdata('student_id');
-        $class_id_result = $conn->query("SELECT class_id FROM student_class WHERE academic_year_id = {$academic_year_id} AND student_id = '{$student_id}'");
 
-        if ($class_id_result->num_rows > 0):
-            $class_id = $class_id_result->fetch_assoc()['class_id'];
-            $qry = $conn->query("SELECT l.*, s.subject_code, IFNULL(g.assignment_score, 0) as assignment_score, IFNULL(g.exam_score, 0) as exam_score 
-                                 FROM lessons l 
-                                 INNER JOIN subjects s ON s.id = l.subject_id 
-                                 LEFT JOIN (SELECT lesson_id, assignment_score, exam_score FROM student_grades WHERE student_id = '{$student_id}') g 
-                                 ON l.id = g.lesson_id 
-                                 WHERE l.academic_year_id = '{$academic_year_id}' 
-                                 AND l.id IN (SELECT lesson_id FROM lesson_class WHERE class_id = '{$class_id}')");
+<?php
+foreach ($student_grades as $i => $grades) {
+    echo '
+    <div class="progress-card">
+        <div class="progress-circle" id="assignmentProgress' . $i . '"></div>
+        <div class="progress-label">Assignment Progress: ' . $grades['assignment_score'] . '%</div>
+        <div class="progress-circle" id="examProgress' . $i . '"></div>
+        <div class="progress-label">Exam Progress: ' . $grades['exam_score'] . '%</div>
+    </div>';
+}
+?>
 
-            while ($row = $qry->fetch_assoc()):
-        ?>
-        <div class="progress-card">
-            <h5 class="card-title"><?php echo $row['title']; ?></h5>
-            <h6 class="card-subtitle mb-2 text-muted"><?php echo $row['subject_code']; ?></h6>
-            <p class="card-text"><?php echo strip_tags(stripslashes(html_entity_decode($row['description']))); ?></p>
-            <div class="progress-circle" id="assignmentProgress<?php echo $i; ?>"></div>
-            <div class="progress-label">Assignment Progress</div>
-            <div class="progress-circle" id="examProgress<?php echo $i; ?>"></div>
-            <div class="progress-label">Exam Progress</div>
-        </div>
-        <script>
-            var assignmentProgress<?php echo $i; ?> = new ProgressBar.Circle('#assignmentProgress<?php echo $i; ?>', {
-                color: '#3498db',
-                strokeWidth: 6,
-                trailWidth: 3,
-                text: {
-                    value: '<?php echo $row['assignment_score']; ?>%',
-                    className: 'progressbar-text',
-                    style: {
-                        color: '#333',
-                        position: 'absolute',
-                        left: '50%',
-                        top: '50%',
-                        padding: 0,
-                        margin: 0,
-                        transform: {
-                            prefix: true,
-                            value: 'translate(-50%, -50%)'
-                        }
-                    }
-                },
-                step: function(state, circle) {
-                    circle.setText(Math.round(circle.value() * 100) + '%');
-                }
-            });
-            assignmentProgress<?php echo $i; ?>.animate(<?php echo $row['assignment_score'] / 100; ?>);
-
-            var examProgress<?php echo $i; ?> = new ProgressBar.Circle('#examProgress<?php echo $i; ?>', {
-                color: '#e74c3c',
-                strokeWidth: 6,
-                trailWidth: 3,
-                text: {
-                    value: '<?php echo $row['exam_score']; ?>%',
-                    className: 'progressbar-text',
-                    style: {
-                        color: '#333',
-                        position: 'absolute',
-                        left: '50%',
-                        top: '50%',
-                        padding: 0,
-                        margin: 0,
-                        transform: {
-                            prefix: true,
-                            value: 'translate(-50%, -50%)'
-                        }
-                    }
-                },
-                step: function(state, circle) {
-                    circle.setText(Math.round(circle.value() * 100) + '%');
-                }
-            });
-            examProgress<?php echo $i; ?>.animate(<?php echo $row['exam_score'] / 100; ?>);
-        </script>
-        <?php $i++; endwhile; ?>
-        <?php endif; ?>
     </div>
 </div>
 
-<script>
-    $(document).ready(function(){
-        // Custom initialization if needed
-    });
-</script>
 </body>
 </html>

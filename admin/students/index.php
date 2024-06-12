@@ -18,8 +18,9 @@
 						<th>Avatar</th>
 						<th>Student ID</th>
 						<th>Name</th>
-						<th>Current Class</th>
+						<th>Email</th>
 						<th>Action</th>
+						<th>Current Class</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -36,7 +37,7 @@
 						<td><center><img src="<?php echo validate_image($row['avatar']) ?>" alt="" class="img-thumbnail border-rounded" width="75px" height="75px" style="object-fit: cover;"></center></td>
 						<td><b><?php echo $row['student_id'] ?></b></td>
 						<td><b><?php echo ucwords($row['lastname'].", ".$row['firstname'].' '.$row['middlename']) ?></b></td>
-						<td><b><?php echo $class ?></b></td>
+						<td><b><?php echo $row['email'] ?></b></td>
 						<td class="text-center">
     						<div class="btn-group">
 		                    <button type="button" class="btn btn-default btn-block btn-flat dropdown-toggle dropdown-hover dropdown-icon btn-sm" data-toggle="dropdown" aria-expanded="false">
@@ -52,6 +53,7 @@
 		                    </div>
 		                </div>
 						</td>
+						<td><b><?php echo $class ?></b></td>
 					</tr>	
 				<?php endwhile; ?>
 				</tbody>

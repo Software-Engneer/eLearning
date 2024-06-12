@@ -43,9 +43,29 @@ INSERT INTO `academic_year` (`id`, `sy`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `backpack`
+-- Table structure for table `assignment`
 --
 
+CREATE TABLE `assignments` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(255) NOT NULL,
+    `description` TEXT NOT NULL,
+    `deadline` DATE NOT NULL,
+    `attachments` VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `assignment`
+--
+INSERT INTO `assignments` (`id`,`title`, `description`, `deadline`, `attachments`) 
+VALUES (1,'Assignment', 'This is the description for assignment.', '2024-06-30', 'attachment1.pdf');
+
+
+--
+-- Table structure for table `backpack`
+--
 CREATE TABLE `backpack` (
   `id` int(30) NOT NULL,
   `student_id` int(30) NOT NULL,
@@ -338,31 +358,6 @@ INSERT INTO `student_class` (`id`, `academic_year_id`, `student_id`, `class_id`)
 
 -- --------------------------------------------------------
 
-
---
---Table structure for table `student_grades`
---
-
-CREATE TABLE `student_grades` (
-    `id` int(30) AUTO_INCREMENT PRIMARY KEY,
-    `student_id` int(30) NOT NULL,
-    `lesson_id` int(30) NOT NULL,
-    `assignment_score` int(30) DEFAULT 0,
-    `exam_score` int(30) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `student_grades`
---
-INSERT INTO `student_grades` (`student_id`, `lesson_id`, `assignment_score`, `exam_score`)
-VALUES 
-    (1, 1, 85, 90),
-    (1, 2, 78, 85),
-    (2, 1, 88, 92),
-    (2, 2, 80, 87);
-
 --
 -- Table structure for table `subjects`
 --
@@ -372,6 +367,32 @@ CREATE TABLE `subjects` (
   `subject_code` varchar(250) NOT NULL,
   `description` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `student_grades` (
+    `id` int(30) AUTO_INCREMENT PRIMARY KEY,
+    `student_id` int(30) NOT NULL,
+    `lesson_id` int(30) NOT NULL,
+    `subject_id` int(30) NOT NULL,
+    `assignment_score` int(30) DEFAULT 0,
+    `exam_score` int(30) DEFAULT 0,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `unique_index` (`student_id`, `lesson_id`, `subject_id`),
+    FOREIGN KEY (`student_id`) REFERENCES `students` (`id`),
+    FOREIGN KEY (`lesson_id`) REFERENCES `lessons` (`id`),
+    FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+----
+-- Dumping data for table `student_grades`
+INSERT INTO `student_grades` (`id`, `student_id`, `assignment_score`, `exam_score`)
+VALUES 
+    (1, 85, 90),
+    (1, 78, 85),
+    (2, 88, 92),
+    (2, 80, 87);
+
 
 --
 -- Dumping data for table `subjects`
@@ -512,18 +533,6 @@ ALTER TABLE `students`
 --
 ALTER TABLE `student_class`
   ADD PRIMARY KEY (`id`);
-
-  --
-ALTER TABLE `student_grades`
- ADD CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES students(id);
- --
-
- --
- ALTER TABLE `student_grades`
-  ADD CONSTRAINT fk_lesson FOREIGN KEY (lesson_id) REFERENCES lessons(id);
-
-
-
 --
 -- Indexes for table `subjects`
 --

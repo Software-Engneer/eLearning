@@ -3,10 +3,9 @@
 	alert_toast("<?php echo $_settings->flashdata('success') ?>",'success')
 </script>
 <?php endif; ?>
-<div class="card card-outline cardprimary w-fluid">
+<div class="card card-outline card-primary w-fluid">
 	<div class="card-header">
 		<h3 class="card-title">Lessons</h3>
-		
 	</div>
 	<div class="card-body">
 		<table class="table table-hover table-compact table-striped">
@@ -18,7 +17,6 @@
 				<col width="15%">
 			</colgroup>
 			<thead>
-			
 				<tr class='bg-light'>
 					<th>#</th>
 					<th>Title</th>
@@ -29,19 +27,18 @@
 			</thead>
 			<tbody>
 				<?php 
-				$i =1;
-				$academic_year_id= $_settings->userdata('academic_id');
-				$student_id= $_settings->userdata('student_id');
-				$class_id = $conn->query("SELECT * FROM student_class where academic_year_id = {$academic_year_id} and student_id = '{$student_id}' ");
-				if($class_id->num_rows > 0):
-				$class_id = $class_id->fetch_array()['class_id'];
-				$qry = $conn->query("SELECT l.*,s.subject_code FROM lessons l inner join subjects s on s.id = l.subject_id where l.academic_year_id = '{$academic_year_id}' and l.id in (SELECT lesson_id from lesson_class where class_id = '{$class_id}') ");
-				while($row=$qry->fetch_assoc()):
-					$desc = html_entity_decode($row['description']);
-					$desc = stripslashes($desc);
-					$desc = strip_tags($desc);
+				$i = 1;
+				$academic_year_id = $_settings->userdata('academic_id');
+				$student_id = $_settings->userdata('student_id');
+				$class_id_result = $conn->query("SELECT class_id FROM student_class WHERE academic_year_id = {$academic_year_id} AND student_id = '{$student_id}' ");
+				if ($class_id_result->num_rows > 0):
+					$class_id = $class_id_result->fetch_assoc()['class_id'];
+					$qry = $conn->query("SELECT l.*, s.subject_code FROM lessons l INNER JOIN subjects s ON s.id = l.subject_id WHERE l.academic_year_id = '{$academic_year_id}' AND l.id IN (SELECT lesson_id FROM lesson_class WHERE class_id = '{$class_id}') ");
+					while ($row = $qry->fetch_assoc()):
+						$desc = html_entity_decode($row['description']);
+						$desc = stripslashes($desc);
+						$desc = strip_tags($desc);
 				?>
-				
 				<tr>
 					<td><?php echo $i++ ?></td>
 					<td><?php echo $row['title'] ?></td>
@@ -49,12 +46,11 @@
 					<td><span class="truncate"><?php echo $desc ?></span></td>
 					<td class="text-center">
 						<div class="btn-group">
-		                    <button type="button" class="btn btn-default btn-block btn-flat dropdown-toggle dropdown-hover dropdown-icon btn-sm" data-toggle="dropdown" aria-expanded="false">
-		                    	Action
-		                      <span class="sr-only">Toggle Dropdown</span>
-		                    </button>
-		                    <div class="dropdown-menu" role="menu" style="">
-	                    	 <a class="dropdown-item action_load" href="./?page=lesson/view_lesson&id=<?php echo $row['id'] ?>">View Lesson</a>
+		                    <a class="btn-sm" data-toggle="dropdown" aria-expanded="false">
+								<span class="fas fa-ellipsis-v" style="color: black;"></span>
+		                    </a>
+		                    <div class="dropdown-menu" role="menu">
+		                        <a class="dropdown-item action_load" href="./?page=lesson/view_lesson&id=<?php echo $row['id'] ?>">View Lesson</a>
 		                    </div>
 		                </div>
 					</td>	
@@ -76,19 +72,19 @@
 		})
 	
 		$('.action_delete').click(function(){
-		_conf("Are you sure to delete lesson?","delete_lesson",[$(this).attr('data-id')])
+			_conf("Are you sure to delete lesson?","delete_lesson",[$(this).attr('data-id')])
 		})
-		$('table th,table td').addClass('px-1 py-0 align-middle')
+		$('table th, table td').addClass('px-1 py-0 align-middle')
 		$('table').dataTable();
 	})
 	function delete_lesson($id){
 		start_loader()
 		$.ajax({
-			url:_base_url_+'lessones/Master.php?f=delete_lesson',
+			url:_base_url_+'lessons/Master.php?f=delete_lesson',
 			method:'POST',
 			data:{id:$id},
 			success:function(resp){
-				if(resp==1){
+				if(resp == 1){
 					location.reload()
 				}
 			}
