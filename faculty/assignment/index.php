@@ -1,223 +1,161 @@
+<?php
+// config.php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "elearning";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// settings.php (example settings class)
+class Settings {
+    public function chk_flashdata($key) {
+        return isset($_SESSION['flashdata'][$key]);
+    }
+
+    public function flashdata($key) {
+        $value = $_SESSION['flashdata'][$key] ?? '';
+        unset($_SESSION['flashdata'][$key]);
+        return $value;
+    }
+
+    public function userdata($key) {
+        return $_SESSION['user'][$key] ?? '';
+    }
+}
+
+// // Initialize settings
+// $_settings = new Settings();
+// session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment Page</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: #f0f0f0;
-            padding: 10px;
-        }
-        .card {
-            background-color: #fff;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            padding: 20px;
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .card-body {
-            margin-top: 5px;
-        }
-        table {
-            font-style: italic;
-            color: #474646;
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            text-align: left;
-            padding: 8px;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .add-new-btn {
-            border: none;
-            padding: 5px;
-            width: 15%;
-            font-size: small;
-            margin-left: auto;
-            cursor: pointer;
-        }
-        .action-menu {
-            position: relative;
-            display: inline-block;
-        }
-        .action-menu-content {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 100px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-        }
-        .action-menu-content button {
-            display: block;
-            width: 100%;
-            text-align: left;
-            border: none;
-            background-color: transparent;
-            cursor: pointer;
-            padding: 8px;
-        }
-        .action-menu-content button:hover {
-            background-color: #f1f1f1;
-        }
-        .action-menu-button {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            margin: 0;
-            width: 24px;
-            height: 24px;
-            position: relative;
-        }
-        .action-menu-button::after {
-            content: '⋮'; /* Unicode character for three dots */
-            font-size: 20px;
-            color: #333;
-        }
-        .action-menu-button:hover::after {
-            color: #555;
-        }
-        #addAssignmentForm {
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-        }
-        #assignmentsCard {
-            display: block;
-        }
-    </style>
-    <!-- Include jQuery UI for the date picker -->
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <title>Assignments</title>
+    <!-- Include Bootstrap CSS and DataTables CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
 </head>
 <body>
 
-<div id="assignmentsCard" class="card">
+<?php if($_settings->chk_flashdata('success')): ?>
+    <script>
+        alert("<?php echo $_settings->flashdata('success'); ?>");
+    </script>
+<?php endif; ?>
+
+<div class="card card-outline card-primary w-fluid">
     <div class="card-header">
-        <h2 style="margin: 0; font-size: 24px; color: #333;">Assignments</h2>
-        <button class="add-new-btn" onclick="toggleForm()">Add New</button>
+        <h3 class="card-title">Assignments</h3>
+        <div class="card-tools">
+            <a class="btn btn-block btn-sm btn-default btn-flat border-primary new_assignment" href="javascript:void(0)"><i class="fa fa-plus"></i> Add Assignment</a>
+        </div>
     </div>
-    
     <div class="card-body">
-        <table id="assignmentTable">
+        <table class="table table-hover table-compact table-striped">
+            <colgroup>
+                <col width="5%">
+                <col width="20%">
+                <col width="20%">
+                <col width="40%">
+                <col width="15%">
+            </colgroup>
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Title</th>
+                    <th>Subject</th>
                     <th>Description</th>
-                    <th>Deadline</th>
-                    <th>Attachments</th>
-                    <th>Actions</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                <?php
-                // Database connection
-                $servername = "localhost";
-                $username = "root";
-                $password = "";
-                $dbname = "elearning";
+                <?php 
+                $i = 1;
+                $academic_year_id = $_settings->userdata('academic_id');
+                $faculty_id = $_settings->userdata('faculty_id');
 
-                // Create connection
-                $conn = new mysqli($servername, $username, $password, $dbname);
-
-                // Check connection
-                if ($conn->connect_error) {
-                    die("Connection failed: " . $conn->connect_error);
-                }
-
-                // Fetch assignments from database
-                $sql = "SELECT id, title, description, deadline, attachments FROM assignments";
-                $result = $conn->query($sql);
-
-                if ($result->num_rows > 0):
-                    while($row = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= $row["id"] ?></td>
-                            <td><?= $row["title"] ?></td>
-                            <td><?= $row["description"] ?></td>
-                            <td><?= $row["deadline"] ?></td>
-                            <td><?= $row["attachments"] ?></td>
-                            <td>
-                                <div class='action-menu'>
-                                    <button class="action-menu-button" onclick='toggleMenu(this)'></button>
-                                    <div class='action-menu-content'>
-                                        <button onclick="viewAssignment('<?= $row["title"] ?>')">View</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endwhile;
-                else: ?>
-                    <tr><td colspan='6'>No assignments found</td></tr>
-                <?php endif;
-
-                $conn->close();
+                $qry = $conn->query("SELECT a.*, s.subject_code FROM assignments a INNER JOIN subjects s ON s.id = a.subject_id WHERE a.academic_year_id = '{$academic_year_id}' AND a.faculty_id = '{$faculty_id}'");
+                while ($row = $qry->fetch_assoc()):
+                    $desc = html_entity_decode($row['description']);
+                    $desc = stripslashes($desc);
+                    $desc = strip_tags($desc);
                 ?>
+                <tr>
+                    <td><?php echo $i++; ?></td>
+                    <td><?php echo $row['title']; ?></td>
+                    <td><?php echo $row['subject_code']; ?></td>
+                    <td><span class="truncate"><?php echo $desc; ?></span></td>
+                    <td class="text-center">
+                        <div class="btn-group dropdown">
+                            <button type="button" class="btn btn-default btn-block btn-flat dropdown-toggle dropdown-hover dropdown-icon btn-sm" data-toggle="dropdown" aria-expanded="false">
+                                Action
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <div class="dropdown-menu w-auto" role="menu">
+                                <a class="dropdown-item action_load" href="./?page=assignment/view_assignment&id=<?php echo $row['id']; ?>">View</a>
+                                <div class="divider"></div>
+                                <a class="dropdown-item action_delete" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
+                            </div>
+                        </div>
+                    </td>    
+                </tr>
+                <?php endwhile; ?>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Include the add_assignment.php form -->
-<?php include 'add_assignment.php'; ?>
+<!-- Include jQuery, Bootstrap JS, and DataTables JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
 
 <script>
-    function toggleForm() {
-        var form = document.getElementById('addAssignmentForm');
-        var assignmentsCard = document.getElementById('assignmentsCard');
-        if (form.style.display === 'block') {
-            form.style.display = 'none';
-            assignmentsCard.style.display = 'block';
-        } else {
-            form.style.display = 'block';
-            assignmentsCard.style.display = 'none';
-        }
-    }
-    
-    function hideForm() {
-        document.getElementById('addAssignmentForm').style.display = 'none';
-        document.getElementById('assignmentsCard').style.display = 'block';
-    }
-    
-    function toggleMenu(button) {
-        var menu = button.nextElementSibling;
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    }
-
-    // Close any open menus when clicking outside
-    window.onclick = function(event) {
-        if (!event.target.matches('.action-menu-button')) {
-            var menus = document.querySelectorAll('.action-menu-content');
-            for (var i = 0; i < menus.length; i++) {
-                var openMenu = menus[i];
-                if (openMenu.style.display === 'block') {
-                    openMenu.style.display = 'none';
-                }
-            }
-        }
-    }
-
-    $(function() {
-        $("#deadline").datepicker({
-            dateFormat: "yy-mm-dd"
+    $(document).ready(function(){
+        $('.new_assignment').click(function(){
+            location.href = "./?page=assignment/manage_assignment";
         });
-    });
-</script>
 
+        $('.action_delete').click(function(){
+            _conf("Are you sure to delete this assignment?", "delete_assignment", [$(this).attr('data-id')]);
+        });
+
+        $('table').DataTable();
+    });
+
+    function delete_assignment(id){
+        start_loader();
+        $.ajax({
+            url: 'delete_assignment.php',
+            method: 'POST',
+            data: {id: id},
+            dataType: 'json',
+            error: function(err){
+                console.log(err);
+                alert("An error occurred.");
+                end_loader();
+            },
+            success: function(resp){
+                if (resp.status == 'success') {
+                    location.reload();
+                } else {
+                    console.log(resp);
+                    alert("An error occurred.");
+                }
+                end_loader();
+            }
+        });
+    }
+</script>
 </body>
 </html>
