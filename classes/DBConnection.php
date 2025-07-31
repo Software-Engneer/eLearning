@@ -1,13 +1,13 @@
 <?php
-if(!defined('DB_SERVER')){
+if(!defined('sql202.infinityfree.com')){
     require_once("../initialize.php");
 }
 class DBConnection{
 
-    private $host = DB_SERVER;
-    private $username = DB_USERNAME;
-    private $password = DB_PASSWORD;
-    private $database = DB_NAME;
+    private $host = 'sql202.infinityfree.com';
+    private $username = 'if0_39463843';
+    private $password = 'bedcom2019';
+    private $database = 'if0_39463843_elearning';
     
     public $conn;
     

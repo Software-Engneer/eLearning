@@ -1,12 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 5.1.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Sep 04, 2021 at 10:20 AM
--- Server version: 10.4.19-MariaDB
--- PHP Version: 8.0.7
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -16,22 +7,37 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
--- Database: `elearning`
+SET FOREIGN_KEY_CHECKS=0;
 
--- --------------------------------------------------------
+DROP TABLE IF EXISTS assignment_class;
+DROP TABLE IF EXISTS assignment_files;
+DROP TABLE IF EXISTS assignments;
+DROP TABLE IF EXISTS backpack;
+DROP TABLE IF EXISTS class_subjects_faculty;
+DROP TABLE IF EXISTS class_subjects;
+DROP TABLE IF EXISTS class;
+DROP TABLE IF EXISTS course;
+DROP TABLE IF EXISTS department;
+DROP TABLE IF EXISTS faculty;
+DROP TABLE IF EXISTS faculties;
+DROP TABLE IF EXISTS lessons;
+DROP TABLE IF EXISTS student_class;
+DROP TABLE IF EXISTS student_grades;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS system_info;
+DROP TABLE IF EXISTS upload_files;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS lesson_class;
+DROP TABLE IF EXISTS academic_year;
+DROP TABLE IF EXISTS faculty; -- in case duplicated
 
--- Table structure for table `academic_year`
-
-USE `elearning`;
-
--- Table: academic_year
 CREATE TABLE academic_year (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sy VARCHAR(150) NOT NULL,
   status TINYINT(5) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: subjects
 CREATE TABLE subjects (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subject_code VARCHAR(50) NOT NULL,
@@ -41,13 +47,11 @@ CREATE TABLE subjects (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: faculties (basic info)
 CREATE TABLE faculties (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: faculty (detailed info)
 CREATE TABLE faculty (
   id INT AUTO_INCREMENT PRIMARY KEY,
   faculty_id VARCHAR(50) NOT NULL,
@@ -64,21 +68,18 @@ CREATE TABLE faculty (
   avatar TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: department
 CREATE TABLE department (
   id INT AUTO_INCREMENT PRIMARY KEY,
   department VARCHAR(255) NOT NULL,
   description TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: course
 CREATE TABLE course (
   id INT AUTO_INCREMENT PRIMARY KEY,
   course VARCHAR(255) NOT NULL,
   description TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: class
 CREATE TABLE class (
   id INT AUTO_INCREMENT PRIMARY KEY,
   department_id INT NOT NULL,
@@ -87,7 +88,6 @@ CREATE TABLE class (
   section VARCHAR(50)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: students
 CREATE TABLE students (
   id INT AUTO_INCREMENT PRIMARY KEY,
   student_id VARCHAR(50) NOT NULL,
@@ -103,7 +103,6 @@ CREATE TABLE students (
   avatar TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: lessons
 CREATE TABLE lessons (
   id INT AUTO_INCREMENT PRIMARY KEY,
   academic_year_id INT NOT NULL,
@@ -114,7 +113,6 @@ CREATE TABLE lessons (
   ppt_path TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: assignments
 CREATE TABLE assignments (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
@@ -129,7 +127,6 @@ CREATE TABLE assignments (
   FOREIGN KEY (faculty_id) REFERENCES faculties(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: assignment_files
 CREATE TABLE assignment_files (
   id INT AUTO_INCREMENT PRIMARY KEY,
   assignment_id INT NOT NULL,
@@ -138,7 +135,6 @@ CREATE TABLE assignment_files (
   FOREIGN KEY (assignment_id) REFERENCES assignments(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: assignment_class
 CREATE TABLE assignment_class (
   id INT AUTO_INCREMENT PRIMARY KEY,
   assignment_id INT NOT NULL,
@@ -147,14 +143,12 @@ CREATE TABLE assignment_class (
   FOREIGN KEY (class_id) REFERENCES class(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: class_subjects
 CREATE TABLE class_subjects (
   academic_year_id INT NOT NULL,
   class_id INT NOT NULL,
   subject_id INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: class_subjects_faculty
 CREATE TABLE class_subjects_faculty (
   id INT AUTO_INCREMENT PRIMARY KEY,
   class_id INT NOT NULL,
@@ -167,7 +161,6 @@ CREATE TABLE class_subjects_faculty (
   FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: backpack
 CREATE TABLE backpack (
   id INT AUTO_INCREMENT PRIMARY KEY,
   student_id INT NOT NULL,
@@ -180,7 +173,6 @@ CREATE TABLE backpack (
   date_updated DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: student_class
 CREATE TABLE student_class (
   id INT AUTO_INCREMENT PRIMARY KEY,
   academic_year_id INT NOT NULL,
@@ -188,7 +180,6 @@ CREATE TABLE student_class (
   class_id INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: student_grades
 CREATE TABLE student_grades (
   id INT AUTO_INCREMENT PRIMARY KEY,
   student_id INT NOT NULL,
@@ -204,14 +195,12 @@ CREATE TABLE student_grades (
   FOREIGN KEY (subject_id) REFERENCES subjects(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: system_info
 CREATE TABLE system_info (
   id INT AUTO_INCREMENT PRIMARY KEY,
   meta_field TEXT NOT NULL,
   meta_value TEXT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: upload_files
 CREATE TABLE upload_files (
   id INT AUTO_INCREMENT PRIMARY KEY,
   filename TEXT NOT NULL,
@@ -220,7 +209,6 @@ CREATE TABLE upload_files (
   date_created DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: users
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   firstname VARCHAR(250) NOT NULL,
@@ -233,171 +221,15 @@ CREATE TABLE users (
   date_updated DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: lesson_class
 CREATE TABLE lesson_class (
   lesson_id INT NOT NULL,
   class_id INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
---
--- Indexes for dumped tables
---
+-- Add indexes and AUTO_INCREMENT modifications if needed...
 
---
--- Indexes for table `academic_year`
+SET FOREIGN_KEY_CHECKS=1;
 
---
--- Indexes for table `backpack`
---
-ALTER TABLE `backpack`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `class`
---
-ALTER TABLE `class`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `course`
---
-ALTER TABLE `course`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `department`
---
-ALTER TABLE `department`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `faculty`
---
-ALTER TABLE `faculty`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `lessons`
---
-ALTER TABLE `lessons`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `students`
---
-ALTER TABLE `students`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `student_class`
---
-ALTER TABLE `student_class`
-  ADD PRIMARY KEY (`id`);
---
--- Indexes for table `subjects`
---
-ALTER TABLE `subjects`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `system_info`
---
-ALTER TABLE `system_info`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `upload_files`
---
-ALTER TABLE `upload_files`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `academic_year`
---
-ALTER TABLE `academic_year`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `backpack`
---
-ALTER TABLE `backpack`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `class`
---
-ALTER TABLE `class`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `course`
---
-ALTER TABLE `course`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `department`
---
-ALTER TABLE `department`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `faculty`
---
-ALTER TABLE `faculty`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `lessons`
---
-ALTER TABLE `lessons`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `students`
---
-ALTER TABLE `students`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `student_class`
---
-ALTER TABLE `student_class`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `subjects`
---
-ALTER TABLE `subjects`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `system_info`
---
-ALTER TABLE `system_info`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
-
---
--- AUTO_INCREMENT for table `upload_files`
---
-ALTER TABLE `upload_files`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
